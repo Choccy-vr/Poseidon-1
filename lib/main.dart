@@ -11,7 +11,9 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ColorScheme.fromSeed(seedColor: Colors.blue).toM3EThemeData(),
+      theme: ColorScheme.fromSeed(
+        seedColor: Color.fromARGB(255, 64, 142, 223),
+      ).toM3EThemeData(),
       home: Scaffold(
         body: Center(
           child: Column(
@@ -19,26 +21,56 @@ class MainApp extends StatelessWidget {
             children: [
               Text('Hello World!'),
               ButtonM3E(label: Text('Hello World!'), onPressed: () {}),
-              LoadingIndicatorM3E(semanticValue: 'Loading...'),
-              CircularProgressIndicatorM3E(
-                size: CircularProgressM3ESize.m,
-                shape: ProgressM3EShape.flat,
-                value: 50,
+
+              Column(
+                children: [
+                  Text('Loading Indicator'),
+                  SizedBox(height: 16),
+                  LoadingIndicatorM3E(),
+                ],
               ),
-              CircularProgressIndicatorM3E(
-                size: CircularProgressM3ESize.m,
-                shape: ProgressM3EShape.wavy,
-                value: 50,
+              Column(
+                children: [
+                  Text('Circular Progress Indicator - flat'),
+                  SizedBox(height: 16),
+                  CircularProgressIndicatorM3E(
+                    size: CircularProgressM3ESize.m,
+                    shape: ProgressM3EShape.flat,
+                    value: 50,
+                  ),
+                ],
               ),
-              LinearProgressIndicatorM3E(
-                value: 50,
-                size: LinearProgressM3ESize.m,
-                shape: ProgressM3EShape.wavy,
+              Column(
+                children: [
+                  Text('Circular Progress Indicator - wavy'),
+                  SizedBox(height: 16),
+                  CircularProgressIndicatorM3E(
+                    size: CircularProgressM3ESize.m,
+                    shape: ProgressM3EShape.wavy,
+                  ),
+                ],
               ),
-              LinearProgressIndicatorM3E(
-                value: 50,
-                size: LinearProgressM3ESize.m,
-                shape: ProgressM3EShape.flat,
+              Column(
+                children: [
+                  Text('Linear Progress Indicator - wavy'),
+                  SizedBox(height: 16),
+                  LinearProgressIndicatorM3E(
+                    value: 50,
+                    size: LinearProgressM3ESize.m,
+                    shape: ProgressM3EShape.wavy,
+                  ),
+                ],
+              ),
+              Column(
+                children: [
+                  Text('Linear Progress Indicator - flat'),
+                  SizedBox(height: 16),
+                  LinearProgressIndicatorM3E(
+                    value: 50,
+                    size: LinearProgressM3ESize.m,
+                    shape: ProgressM3EShape.flat,
+                  ),
+                ],
               ),
             ],
           ),
