@@ -1,2 +1,3 @@
-# Poseidon-1
-A screen upgrade for the Neptune 4 class printers 
+# poseidon_1
+
+A new Flutter project.
