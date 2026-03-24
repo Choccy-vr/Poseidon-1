@@ -3,6 +3,7 @@ import 'package:m3e_collection/m3e_collection.dart';
 import 'package:poseidon_1/services/moonraker/moonraker_service.dart';
 
 void main() {
+  MoonrakerService.connectPrinter(ip: '192.168.68.53', port: 7125);
   runApp(const MainApp());
 }
 
@@ -20,11 +21,11 @@ class MainApp extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Text('Hello World!'),
+              Text('Moonraker Demo'),
               ButtonM3E(
-                label: Text('Hello World!'),
+                label: Text('Test Printer Info'),
                 onPressed: () {
-                  MoonrakerService.testPrinter(ip: '192.168.68.53', port: 7125);
+                  MoonrakerService.testPrinterInfo();
                 },
               ),
 
