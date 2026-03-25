@@ -5,7 +5,7 @@ class Macro {
   Macro({required this.name, required this.gcode});
 
   factory Macro.fromJson(Map<String, dynamic> json) {
-    return Macro(name: json['name'], gcode: json['gcode']);
+    return Macro(name: json['name'] as String, gcode: json['gcode'] as String);
   }
 
   Map<String, dynamic> toJson() {

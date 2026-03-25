@@ -1,0 +1,121 @@
+import 'package:flutter/material.dart';
+import 'package:m3e_collection/m3e_collection.dart';
+import 'package:poseidon_1/services/moonraker/moonraker_service.dart';
+import 'package:provider/provider.dart';
+
+class DevPage extends StatelessWidget {
+  const DevPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text('Moonraker Demo'),
+            ButtonM3E(
+              label: Text('Emergency Stop!'),
+              onPressed: () {
+                MoonrakerService().emergencyStop();
+              },
+            ),
+
+            Consumer<MoonrakerService>(
+              builder: (context, service, child) {
+                final extruderPower =
+                    ((service.currentPrinter?.extruder.power ?? 0.0) * 100)
+                        .toInt();
+                final heaterBedPower =
+                    ((service.currentPrinter?.heaterBed.power ?? 0.0) * 100)
+                        .toInt();
+                return Column(
+                  children: [
+                    Text('Extruder Status'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
+                      children: [
+                        Text(
+                          'Temp: ${service.currentPrinter?.extruder.actualTemp.toStringAsFixed(1) ?? 'N/A'}',
+                        ),
+                        Text(
+                          'Target: ${service.currentPrinter?.extruder.targetTemp.toStringAsFixed(1) ?? 'N/A'}',
+                        ),
+                        Text('Power: ${extruderPower}%'),
+                      ],
+                    ),
+                    Text('Heater Bed Status'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(
+                          'Temp: ${service.currentPrinter?.heaterBed.actualTemp.toStringAsFixed(1) ?? 'N/A'}',
+                        ),
+                        Text(
+                          'Target: ${service.currentPrinter?.heaterBed.targetTemp.toStringAsFixed(1) ?? 'N/A'}',
+                        ),
+                        Text('Power: ${heaterBedPower}%'),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            Column(
+              children: [
+                Text('Loading Indicator'),
+                SizedBox(height: 16),
+                LoadingIndicatorM3E(),
+              ],
+            ),
+            Column(
+              children: [
+                Text('Circular Progress Indicator - flat'),
+                SizedBox(height: 16),
+                CircularProgressIndicatorM3E(
+                  size: CircularProgressM3ESize.m,
+                  shape: ProgressM3EShape.flat,
+                  value: 50,
+                ),
+              ],
+            ),
+            Column(
+              children: [
+                Text('Circular Progress Indicator - wavy'),
+                SizedBox(height: 16),
+                CircularProgressIndicatorM3E(
+                  size: CircularProgressM3ESize.m,
+                  shape: ProgressM3EShape.wavy,
+                ),
+              ],
+            ),
+            Column(
+              children: [
+                Text('Linear Progress Indicator - wavy'),
+                SizedBox(height: 16),
+                LinearProgressIndicatorM3E(
+                  value: 50,
+                  size: LinearProgressM3ESize.m,
+                  shape: ProgressM3EShape.wavy,
+                ),
+              ],
+            ),
+            Column(
+              children: [
+                Text('Linear Progress Indicator - flat'),
+                SizedBox(height: 16),
+                LinearProgressIndicatorM3E(
+                  value: 50,
+                  size: LinearProgressM3ESize.m,
+                  shape: ProgressM3EShape.flat,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

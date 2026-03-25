@@ -16,20 +16,20 @@ class Heater {
       name: HeaterType.values.firstWhere(
         (e) => e.toString() == 'HeaterType.' + json['name'],
       ),
-      actualTemp: json['actual_temp'],
-      targetTemp: json['target_temp'],
-      power: json['power'],
+      actualTemp: (json['temperature'] as num?)?.toDouble() ?? 0,
+      targetTemp: (json['target'] as num?)?.toDouble() ?? 0,
+      power: (json['power'] as num?)?.toDouble() ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'name': name.toString().split('.').last,
-      'actual_temp': actualTemp,
-      'target_temp': targetTemp,
+      'temperature': actualTemp,
+      'target': targetTemp,
       'power': power,
     };
   }
 }
 
-enum HeaterType { extruder, heaterBed, heaterOutterBed }
+enum HeaterType { extruder, heaterBed }

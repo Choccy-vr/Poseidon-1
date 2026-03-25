@@ -1,6 +1,6 @@
 name: poseidon_1
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0+1
 
 environment:
@@ -9,9 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.6.0
   json_rpc_2: ^4.1.0
   m3e_collection: ^0.3.7
+  provider: ^6.1.5
   web_socket_channel: ^3.0.3
 
 dev_dependencies:
