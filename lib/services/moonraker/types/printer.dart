@@ -1,6 +1,7 @@
 import 'package:poseidon_1/services/moonraker/types/fan.dart';
 import 'package:poseidon_1/services/moonraker/types/heater.dart';
 import 'package:poseidon_1/services/moonraker/types/macro.dart';
+import 'package:poseidon_1/services/moonraker/types/print_job.dart';
 import 'package:poseidon_1/services/moonraker/types/toolhead.dart';
 
 class Printer {
@@ -10,6 +11,7 @@ class Printer {
   Toolhead toolhead;
   Fan fan;
   List<Macro> macros;
+  List<PrintJob> printJobs;
   List<String> objects;
   String? message;
 
@@ -20,6 +22,7 @@ class Printer {
     required this.toolhead,
     required this.fan,
     required this.macros,
+    required this.printJobs,
     required this.objects,
     this.message,
   });
@@ -37,22 +40,13 @@ class Printer {
         (json['macros'] as List).map((e) => Macro.fromJson(e)).toList(),
       ),
 
+      printJobs: List<PrintJob>.from(
+        (json['print_jobs'] as List).map((e) => PrintJob.fromJson(e)).toList(),
+      ),
+
       objects: List<String>.from(json['objects']),
       message: json['message'],
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'state': state.toString().split('.').last,
-      'extruder': extruder.toJson(),
-      'heater_bed': heaterBed.toJson(),
-      'toolhead': toolhead.toJson(),
-      'fan': fan.toJson(),
-      'macros': macros.map((e) => e.toJson()).toList(),
-      'message': message,
-      'objects': objects,
-    };
   }
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:m3e_collection/m3e_collection.dart';
+import 'package:poseidon_1/services/moonraker/instance/moonraker_instance.dart';
 import 'package:poseidon_1/services/moonraker/moonraker_service.dart';
 import 'package:provider/provider.dart';
 
@@ -15,9 +16,17 @@ class DevPage extends StatelessWidget {
           children: [
             Text('Moonraker Demo'),
             ButtonM3E(
-              label: Text('Emergency Stop!'),
+              label: Text('Reprint recent print'),
               onPressed: () {
-                MoonrakerService().emergencyStop();
+                MoonrakerInstance.moonrakerService.startPrint(
+                  MoonrakerInstance
+                          .moonrakerService
+                          .currentPrinter
+                          ?.printJobs
+                          .first
+                          .filePath ??
+                      '',
+                );
               },
             ),
 
@@ -79,6 +88,21 @@ class DevPage extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [Text('Speed: $fanSpeedPercent%')],
+                    ),
+                    Text('Latest Print Job'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(
+                          'File Path: ${service.currentPrinter?.printJobs.first.filePath ?? 'N/A'}',
+                        ),
+                        Text(
+                          'Filament Used: ${service.currentPrinter?.printJobs.first.filamentUsed.toStringAsFixed(2) ?? 'N/A'} mm',
+                        ),
+                        Text(
+                          'Print Duration: ${service.currentPrinter?.printJobs.first.printDuration.toStringAsFixed(1) ?? 'N/A'} s',
+                        ),
+                      ],
                     ),
                     Text(
                       'MACRO: ${service.currentPrinter?.macros.first.name ?? 'N/A'}',

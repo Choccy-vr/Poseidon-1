@@ -6,6 +6,7 @@ import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:poseidon_1/services/moonraker/types/fan.dart';
 import 'package:poseidon_1/services/moonraker/types/heater.dart';
 import 'package:poseidon_1/services/moonraker/types/macro.dart';
+import 'package:poseidon_1/services/moonraker/types/print_job.dart';
 import 'package:poseidon_1/services/moonraker/types/printer.dart';
 import 'package:poseidon_1/services/moonraker/types/toolhead.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -268,6 +269,33 @@ class MoonrakerService extends ChangeNotifier {
     }
   }
 
+  Future<List<PrintJob>> getLatestPrintJobs() async {
+    if (_rpc == null || !_isConnected) {
+      throw Exception('Not connected to Moonraker');
+    }
+
+    try {
+      final response = await _rpc!
+          .sendRequest('server.history.list')
+          .timeout(const Duration(seconds: 4));
+
+      final rawJobs = (response['jobs'] ?? response['status']?['print_jobs']);
+      if (rawJobs is! List) {
+        throw Exception('Unexpected history response format');
+      }
+
+      return List<PrintJob>.from(
+        rawJobs
+            .whereType<Map>()
+            .map((e) => PrintJob.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
+      );
+    } catch (error) {
+      print('Failed to get print jobs: $error');
+      rethrow;
+    }
+  }
+
   Future<List<String>> getObjectList() async {
     if (_rpc == null || !_isConnected) {
       throw Exception('Not connected to Moonraker');
@@ -315,6 +343,7 @@ class MoonrakerService extends ChangeNotifier {
         getHeaterBedStatus(),
         getToolheadStatus(),
         getFanStatus(),
+        getLatestPrintJobs(),
         getObjectList(),
       ]);
       final state = results[0] as PrinterState;
@@ -322,7 +351,8 @@ class MoonrakerService extends ChangeNotifier {
       final heaterBed = results[2] as Heater;
       final toolhead = results[3] as Toolhead;
       final fan = results[4] as Fan;
-      final objects = results[5] as List<String>;
+      final printJobs = results[5] as List<PrintJob>;
+      final objects = results[6] as List<String>;
       final macros = await getMacroListFromObjects(objects);
 
       printer = Printer(
@@ -333,6 +363,7 @@ class MoonrakerService extends ChangeNotifier {
         fan: fan,
         macros: macros,
         objects: objects,
+        printJobs: printJobs,
       );
       identifyPoseidon();
       notifyListeners();
