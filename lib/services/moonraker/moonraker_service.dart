@@ -556,4 +556,98 @@ class MoonrakerService extends ChangeNotifier {
           print('Failed to execute macro ${macro.name}: $error');
         });
   }
+
+  void startPrint(String path) {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    try {
+      _rpc!.sendRequest('printer.print.start', {'filename': path}).catchError((
+        error,
+      ) {
+        print('Failed to start print: $error');
+      });
+    } catch (error) {
+      print('Failed to start print: $error');
+    }
+
+    //TODO: handle response and update printer state accordingly
+  }
+
+  void pausePrint() {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    try {
+      _rpc!.sendRequest('printer.print.pause').catchError((error) {
+        print('Failed to pause print: $error');
+      });
+    } catch (error) {
+      print('Failed to pause print: $error');
+    }
+  }
+
+  void resumePrint() {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    try {
+      _rpc!.sendRequest('printer.print.resume').catchError((error) {
+        print('Failed to resume print: $error');
+      });
+    } catch (error) {
+      print('Failed to resume print: $error');
+    }
+  }
+
+  void cancelPrint() {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    try {
+      _rpc!.sendRequest('printer.print.cancel').catchError((error) {
+        print('Failed to cancel print: $error');
+      });
+    } catch (error) {
+      print('Failed to cancel print: $error');
+    }
+  }
+
+  void firmwareRestart() {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    try {
+      _rpc!.sendRequest('printer.firmware_restart').catchError((error) {
+        print('Failed to restart firmware: $error');
+      });
+    } catch (error) {
+      print('Failed to restart firmware: $error');
+    }
+  }
+
+  void hostRestart() {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    try {
+      _rpc!.sendRequest('printer.restart').catchError((error) {
+        print('Failed to restart host: $error');
+      });
+    } catch (error) {
+      print('Failed to restart host: $error');
+    }
+  }
 }
