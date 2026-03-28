@@ -3,8 +3,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:poseidon_1/services/moonraker/types/fan.dart';
 import 'package:poseidon_1/services/moonraker/types/heater.dart';
-import 'package:poseidon_1/services/moonraker/types/print_job.dart';
+import 'package:poseidon_1/services/moonraker/types/macro.dart';
 import 'package:poseidon_1/services/moonraker/types/printer.dart';
 import 'package:poseidon_1/services/moonraker/types/toolhead.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -25,6 +26,7 @@ class MoonrakerService extends ChangeNotifier {
   static WebSocketChannel? _channel;
   static Peer? _rpc;
 
+  //TODO: Autodiscover printer on local network
   Future<void> connectPrinter({required String ip, required int port}) async {
     if (_isConnecting) {
       return;
@@ -66,7 +68,7 @@ class MoonrakerService extends ChangeNotifier {
       _isConnected = true;
       print('Connected to Moonraker at $ip:$port');
       await newPrinter();
-      subscribeHeaters();
+      subscribeToObjects();
     } catch (error) {
       _isConnected = false;
       print('Connection failed: $error');
@@ -217,7 +219,7 @@ class MoonrakerService extends ChangeNotifier {
     }
   }
 
-  Future<PrintJob> getPrintJobStatus() async {
+  Future<Fan> getFanStatus() async {
     if (_rpc == null || !_isConnected) {
       throw Exception('Not connected to Moonraker');
     }
@@ -226,19 +228,80 @@ class MoonrakerService extends ChangeNotifier {
       final response = await _rpc!
           .sendRequest('printer.objects.query', {
             'objects': {
-              'print_stats': [
-                'filename',
-                'progress',
-                'time_elapsed',
-                'time_remaining',
-              ],
+              'fan': ['speed'],
             },
           })
           .timeout(const Duration(seconds: 4));
-      return PrintJob.fromJson(response['status']['print_stats']);
+      return Fan.fromJson(response['status']['fan']);
     } catch (error) {
-      print('Failed to get print job status: $error');
+      print('Failed to get fan status: $error');
       rethrow;
+    }
+  }
+
+  Future<List<Macro>> getMacroListFromObjects(List<String> objects) async {
+    if (_rpc == null || !_isConnected) {
+      throw Exception('Not connected to Moonraker');
+    }
+
+    try {
+      const prefix = 'gcode_macro ';
+      final macros = <Macro>[];
+
+      for (final objectName in objects) {
+        if (!objectName.startsWith(prefix)) {
+          continue;
+        }
+
+        final macroName = objectName.substring(prefix.length).trim();
+        if (macroName.isEmpty) {
+          continue;
+        }
+
+        macros.add(Macro(name: macroName));
+      }
+
+      return macros;
+    } catch (error) {
+      print('Failed to get macro list: $error');
+      rethrow;
+    }
+  }
+
+  Future<List<String>> getObjectList() async {
+    if (_rpc == null || !_isConnected) {
+      throw Exception('Not connected to Moonraker');
+    }
+
+    try {
+      final response = await _rpc!
+          .sendRequest('printer.objects.list')
+          .timeout(const Duration(seconds: 4));
+      return List<String>.from(response['objects']);
+    } catch (error) {
+      print('Failed to get object list: $error');
+      rethrow;
+    }
+  }
+
+  Future<void> identifyPoseidon() async {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    try {
+      await _rpc!
+          .sendRequest('server.connection.identify', {
+            'client_name': 'Poseidon-1',
+            'version': '0.0.1',
+            'type': 'display',
+            'url': 'https://github.com/Choccy-vr/Poseidon-1',
+          })
+          .timeout(const Duration(seconds: 4));
+      print('Identified Poseidon-1 to Moonraker');
+    } catch (error) {
+      print('Failed to identify Poseidon-1: $error');
     }
   }
 
@@ -246,30 +309,39 @@ class MoonrakerService extends ChangeNotifier {
     print('fetching initial printer status...');
     try {
       final results = await Future.wait([
+        //TODO: batch these into a single request
         getPrinterState(),
         getExtruderStatus(),
         getHeaterBedStatus(),
         getToolheadStatus(),
+        getFanStatus(),
+        getObjectList(),
       ]);
       final state = results[0] as PrinterState;
       final extruder = results[1] as Heater;
       final heaterBed = results[2] as Heater;
       final toolhead = results[3] as Toolhead;
+      final fan = results[4] as Fan;
+      final objects = results[5] as List<String>;
+      final macros = await getMacroListFromObjects(objects);
 
       printer = Printer(
         state: state,
         extruder: extruder,
         heaterBed: heaterBed,
         toolhead: toolhead,
-        fans: [],
+        fan: fan,
+        macros: macros,
+        objects: objects,
       );
+      identifyPoseidon();
       notifyListeners();
     } catch (error) {
       print('Failed to initialize printer: $error');
     }
   }
 
-  Future<void> subscribeHeaters() async {
+  Future<void> subscribeToObjects() async {
     if (_rpc == null || !_isConnected) {
       print('Not connected to Moonraker');
       return;
@@ -294,13 +366,26 @@ class MoonrakerService extends ChangeNotifier {
           return;
         }
 
+        print('status update: $status');
+
         _updateHeatersFromStatus(status);
+        _updateToolheadFromStatus(status);
+        _updateFanFromStatus(status);
       });
       final response = await _rpc!
           .sendRequest('printer.objects.subscribe', {
             'objects': {
               'extruder': ['temperature', 'target', 'power'],
               'heater_bed': ['temperature', 'target', 'power'],
+              'toolhead': ['position', 'homed_axes'],
+              'print_stats': [
+                'filename',
+                'print_duration',
+                'filament_used',
+                'state',
+                'info',
+              ],
+              'fan': ['speed'],
             },
           })
           .timeout(const Duration(seconds: 4));
@@ -312,11 +397,19 @@ class MoonrakerService extends ChangeNotifier {
         ...response['status']['heater_bed'],
         'name': 'heaterBed',
       };
+      final Map<String, dynamic> toolheadJson = {
+        ...response['status']['toolhead'],
+      };
+      final Map<String, dynamic> fanJson = {...response['status']['fan']};
+
+      print('response: $response');
       printer?.extruder = Heater.fromJson(extruderJson);
       printer?.heaterBed = Heater.fromJson(heaterBedJson);
+      printer?.toolhead = Toolhead.fromJson(toolheadJson);
+      printer?.fan = Fan.fromJson(fanJson);
       notifyListeners();
     } catch (error) {
-      print('Failed to get extruder status: $error');
+      print('Failed to subscribe to objects: $error');
     }
   }
 
@@ -372,6 +465,74 @@ class MoonrakerService extends ChangeNotifier {
     }
   }
 
+  void _updateToolheadFromStatus(Map<String, dynamic> status) {
+    if (printer == null) {
+      return;
+    }
+
+    var didChange = false;
+
+    if (status['toolhead'] is Map) {
+      final toolheadPatch = Map<String, dynamic>.from(
+        status['toolhead'] as Map,
+      );
+      final currentToolhead = printer!.toolhead;
+      final currentPosition = <double>[
+        currentToolhead.x,
+        currentToolhead.y,
+        currentToolhead.z,
+        currentToolhead.e,
+      ];
+
+      var position = currentPosition;
+      final rawPosition = toolheadPatch['position'];
+      if (rawPosition is List) {
+        final parsedPosition = rawPosition
+            .whereType<num>()
+            .map((value) => value.toDouble())
+            .toList();
+        if (parsedPosition.length == 4) {
+          position = parsedPosition;
+        }
+      }
+
+      final toolheadJson = {
+        'position': position,
+        'homed_axes':
+            (toolheadPatch['homed_axes'] as String?) ??
+            currentToolhead.homedAxes,
+      };
+      printer?.toolhead = Toolhead.fromJson(toolheadJson);
+      didChange = true;
+    }
+    if (didChange) {
+      notifyListeners();
+    }
+  }
+
+  void _updateFanFromStatus(Map<String, dynamic> status) {
+    if (printer == null) {
+      return;
+    }
+
+    var didChange = false;
+
+    if (status['fan'] is Map) {
+      final fanPatch = Map<String, dynamic>.from(status['fan'] as Map);
+      final currentFan = printer!.fan;
+
+      final fanJson = {
+        'speed': (fanPatch['speed'] as num?)?.toDouble() ?? currentFan.speed,
+      };
+      printer?.fan = Fan.fromJson(fanJson);
+      didChange = true;
+    }
+
+    if (didChange) {
+      notifyListeners();
+    }
+  }
+
   void emergencyStop() {
     if (_rpc == null || !_isConnected) {
       print('Not connected to Moonraker');
@@ -381,5 +542,18 @@ class MoonrakerService extends ChangeNotifier {
     _rpc!.sendRequest('printer.emergency_stop').catchError((error) {
       print('Failed to send emergency stop: $error');
     });
+  }
+
+  void executeMacro(Macro macro) {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    _rpc!
+        .sendRequest('printer.gcode.script', {'script': macro.name})
+        .catchError((error) {
+          print('Failed to execute macro ${macro.name}: $error');
+        });
   }
 }

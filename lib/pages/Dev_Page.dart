@@ -29,6 +29,8 @@ class DevPage extends StatelessWidget {
                 final heaterBedPower =
                     ((service.currentPrinter?.heaterBed.power ?? 0.0) * 100)
                         .toInt();
+                final fanSpeedPercent =
+                    ((service.currentPrinter?.fan.speed ?? 0.0) * 100).toInt();
                 return Column(
                   children: [
                     Text('Extruder Status'),
@@ -42,7 +44,7 @@ class DevPage extends StatelessWidget {
                         Text(
                           'Target: ${service.currentPrinter?.extruder.targetTemp.toStringAsFixed(1) ?? 'N/A'}',
                         ),
-                        Text('Power: ${extruderPower}%'),
+                        Text('Power: $extruderPower%'),
                       ],
                     ),
                     Text('Heater Bed Status'),
@@ -55,8 +57,31 @@ class DevPage extends StatelessWidget {
                         Text(
                           'Target: ${service.currentPrinter?.heaterBed.targetTemp.toStringAsFixed(1) ?? 'N/A'}',
                         ),
-                        Text('Power: ${heaterBedPower}%'),
+                        Text('Power: $heaterBedPower%'),
                       ],
+                    ),
+                    Text('Toolhead Status'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(
+                          'X: ${service.currentPrinter?.toolhead.x.toStringAsFixed(2) ?? 'N/A'}',
+                        ),
+                        Text(
+                          'Y: ${service.currentPrinter?.toolhead.y.toStringAsFixed(2) ?? 'N/A'}',
+                        ),
+                        Text(
+                          'Z: ${service.currentPrinter?.toolhead.z.toStringAsFixed(2) ?? 'N/A'}',
+                        ),
+                      ],
+                    ),
+                    Text('Fan Status'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [Text('Speed: $fanSpeedPercent%')],
+                    ),
+                    Text(
+                      'MACRO: ${service.currentPrinter?.macros.first.name ?? 'N/A'}',
                     ),
                   ],
                 );
