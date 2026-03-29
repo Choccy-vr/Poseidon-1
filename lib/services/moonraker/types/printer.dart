@@ -1,3 +1,4 @@
+import 'package:poseidon_1/services/moonraker/types/current_print_job.dart';
 import 'package:poseidon_1/services/moonraker/types/fan.dart';
 import 'package:poseidon_1/services/moonraker/types/heater.dart';
 import 'package:poseidon_1/services/moonraker/types/macro.dart';
@@ -14,6 +15,7 @@ class Printer {
   List<PrintJob> printJobs;
   List<String> objects;
   String? message;
+  CurrentPrintJob currentPrintJob;
 
   Printer({
     required this.state,
@@ -25,6 +27,7 @@ class Printer {
     required this.printJobs,
     required this.objects,
     this.message,
+    required this.currentPrintJob,
   });
 
   factory Printer.fromJson(Map<String, dynamic> json) {
@@ -45,6 +48,7 @@ class Printer {
       ),
 
       objects: List<String>.from(json['objects']),
+      currentPrintJob: CurrentPrintJob.fromJson(json['print_stats']),
       message: json['message'],
     );
   }

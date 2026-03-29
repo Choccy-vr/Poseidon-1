@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:poseidon_1/services/moonraker/types/current_print_job.dart';
 import 'package:poseidon_1/services/moonraker/types/fan.dart';
 import 'package:poseidon_1/services/moonraker/types/heater.dart';
 import 'package:poseidon_1/services/moonraker/types/macro.dart';
@@ -296,6 +297,37 @@ class MoonrakerService extends ChangeNotifier {
     }
   }
 
+  Future<CurrentPrintJob> getCurrentPrintJob() async {
+    if (_rpc == null || !_isConnected) {
+      throw Exception('Not connected to Moonraker');
+    }
+
+    try {
+      final response = await _rpc!
+          .sendRequest('printer.objects.query', {
+            'objects': {
+              'print_stats': [
+                'state',
+                'filename',
+                'total_duration',
+                'print_duration',
+                'filament_used',
+                'message',
+                'info',
+              ],
+            },
+          })
+          .timeout(const Duration(seconds: 4));
+      final Map<String, dynamic> printStatsJson = {
+        ...response['status']['print_stats'],
+      };
+      return CurrentPrintJob.fromJson(printStatsJson);
+    } catch (error) {
+      print('Failed to get current print job: $error');
+      rethrow;
+    }
+  }
+
   Future<List<String>> getObjectList() async {
     if (_rpc == null || !_isConnected) {
       throw Exception('Not connected to Moonraker');
@@ -345,6 +377,7 @@ class MoonrakerService extends ChangeNotifier {
         getFanStatus(),
         getLatestPrintJobs(),
         getObjectList(),
+        getCurrentPrintJob(),
       ]);
       final state = results[0] as PrinterState;
       final extruder = results[1] as Heater;
@@ -354,6 +387,7 @@ class MoonrakerService extends ChangeNotifier {
       final printJobs = results[5] as List<PrintJob>;
       final objects = results[6] as List<String>;
       final macros = await getMacroListFromObjects(objects);
+      final currentPrintJob = results[7] as CurrentPrintJob;
 
       printer = Printer(
         state: state,
@@ -364,6 +398,7 @@ class MoonrakerService extends ChangeNotifier {
         macros: macros,
         objects: objects,
         printJobs: printJobs,
+        currentPrintJob: currentPrintJob,
       );
       identifyPoseidon();
       notifyListeners();
@@ -402,6 +437,7 @@ class MoonrakerService extends ChangeNotifier {
         _updateHeatersFromStatus(status);
         _updateToolheadFromStatus(status);
         _updateFanFromStatus(status);
+        _updateCurrentPrintJobFromStatus(status);
       });
       final response = await _rpc!
           .sendRequest('printer.objects.subscribe', {
@@ -410,10 +446,12 @@ class MoonrakerService extends ChangeNotifier {
               'heater_bed': ['temperature', 'target', 'power'],
               'toolhead': ['position', 'homed_axes'],
               'print_stats': [
+                'state',
                 'filename',
+                'total_duration',
                 'print_duration',
                 'filament_used',
-                'state',
+                'message',
                 'info',
               ],
               'fan': ['speed'],
@@ -431,12 +469,16 @@ class MoonrakerService extends ChangeNotifier {
       final Map<String, dynamic> toolheadJson = {
         ...response['status']['toolhead'],
       };
+      final Map<String, dynamic> printStatsJson = {
+        ...response['status']['print_stats'],
+      };
       final Map<String, dynamic> fanJson = {...response['status']['fan']};
 
       print('response: $response');
       printer?.extruder = Heater.fromJson(extruderJson);
       printer?.heaterBed = Heater.fromJson(heaterBedJson);
       printer?.toolhead = Toolhead.fromJson(toolheadJson);
+      printer?.currentPrintJob = CurrentPrintJob.fromJson(printStatsJson);
       printer?.fan = Fan.fromJson(fanJson);
       notifyListeners();
     } catch (error) {
@@ -556,6 +598,48 @@ class MoonrakerService extends ChangeNotifier {
         'speed': (fanPatch['speed'] as num?)?.toDouble() ?? currentFan.speed,
       };
       printer?.fan = Fan.fromJson(fanJson);
+      didChange = true;
+    }
+
+    if (didChange) {
+      notifyListeners();
+    }
+  }
+
+  void _updateCurrentPrintJobFromStatus(Map<String, dynamic> status) {
+    if (printer == null) {
+      return;
+    }
+
+    var didChange = false;
+
+    if (status['print_stats'] is Map) {
+      final printStatsPatch = Map<String, dynamic>.from(
+        status['print_stats'] as Map,
+      );
+      final currentPrintJob = printer!.currentPrintJob;
+
+      final printStatsJson = {
+        'filename':
+            (printStatsPatch['filename'] as String?) ??
+            currentPrintJob.filePath,
+        'state':
+            (printStatsPatch['state'] as String?) ??
+            currentPrintJob.state.toString().split('.').last,
+        'total_duration':
+            (printStatsPatch['total_duration'] as num?)?.toDouble() ??
+            currentPrintJob.totalDuration,
+        'print_duration':
+            (printStatsPatch['print_duration'] as num?)?.toDouble() ??
+            currentPrintJob.printDuration,
+        'filament_used':
+            (printStatsPatch['filament_used'] as num?)?.toDouble() ??
+            currentPrintJob.filamentUsed,
+        'message':
+            (printStatsPatch['message'] as String?) ?? currentPrintJob.message,
+        'info': printStatsPatch['info'] ?? {},
+      };
+      printer?.currentPrintJob = CurrentPrintJob.fromJson(printStatsJson);
       didChange = true;
     }
 

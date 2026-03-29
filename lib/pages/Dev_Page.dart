@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:m3e_collection/m3e_collection.dart';
 import 'package:poseidon_1/services/moonraker/instance/moonraker_instance.dart';
 import 'package:poseidon_1/services/moonraker/moonraker_service.dart';
+import 'package:poseidon_1/services/moonraker/types/current_print_job.dart';
 import 'package:provider/provider.dart';
 
 class DevPage extends StatelessWidget {
@@ -89,21 +90,27 @@ class DevPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [Text('Speed: $fanSpeedPercent%')],
                     ),
-                    Text('Latest Print Job'),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Text(
-                          'File Path: ${service.currentPrinter?.printJobs.first.filePath ?? 'N/A'}',
-                        ),
-                        Text(
-                          'Filament Used: ${service.currentPrinter?.printJobs.first.filamentUsed.toStringAsFixed(2) ?? 'N/A'} mm',
-                        ),
-                        Text(
-                          'Print Duration: ${service.currentPrinter?.printJobs.first.printDuration.toStringAsFixed(1) ?? 'N/A'} s',
-                        ),
-                      ],
-                    ),
+                    if (service.currentPrinter?.currentPrintJob.state ==
+                        CurrentPrintJobState.printing) ...[
+                      Text('Current Print Job'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Text(
+                            service.currentPrinter?.currentPrintJob.filePath
+                                    .split('/')
+                                    .last ??
+                                'No current print job',
+                          ),
+                          Text(
+                            'Filament Used: ${service.currentPrinter?.currentPrintJob?.filamentUsed.toStringAsFixed(2) ?? 'N/A'} mm',
+                          ),
+                          Text(
+                            'Print Duration: ${service.currentPrinter?.currentPrintJob?.printDuration.toStringAsFixed(1) ?? 'N/A'} s',
+                          ),
+                        ],
+                      ),
+                    ],
                     Text(
                       'MACRO: ${service.currentPrinter?.macros.first.name ?? 'N/A'}',
                     ),
