@@ -103,10 +103,10 @@ class DevPage extends StatelessWidget {
                                 'No current print job',
                           ),
                           Text(
-                            'Filament Used: ${service.currentPrinter?.currentPrintJob?.filamentUsed.toStringAsFixed(2) ?? 'N/A'} mm',
+                            'Filament Used: ${service.currentPrinter?.currentPrintJob.filamentUsed.toStringAsFixed(2) ?? 'N/A'} mm',
                           ),
                           Text(
-                            'Print Duration: ${service.currentPrinter?.currentPrintJob?.printDuration.toStringAsFixed(1) ?? 'N/A'} s',
+                            'Print Duration: ${service.currentPrinter?.currentPrintJob.printDuration.toStringAsFixed(1) ?? 'N/A'} s',
                           ),
                         ],
                       ),
