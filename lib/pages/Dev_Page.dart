@@ -3,6 +3,7 @@ import 'package:m3e_collection/m3e_collection.dart';
 import 'package:poseidon_1/services/moonraker/instance/moonraker_instance.dart';
 import 'package:poseidon_1/services/moonraker/moonraker_service.dart';
 import 'package:poseidon_1/services/moonraker/types/current_print_job.dart';
+import 'package:poseidon_1/widget/navigation_rail.dart';
 import 'package:provider/provider.dart';
 
 class DevPage extends StatelessWidget {
@@ -10,7 +11,8 @@ class DevPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppNavigationScaffold(
+      selectedIndex: 1,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

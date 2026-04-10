@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  google_fonts: ^8.0.2
   json_rpc_2: ^4.1.0
   m3e_collection: ^0.3.7
   provider: ^6.1.5
