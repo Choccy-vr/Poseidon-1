@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:m3e_collection/m3e_collection.dart';
+import 'package:poseidon_1/pages/Files_Page.dart';
 import 'package:poseidon_1/services/moonraker/types/current_print_job.dart';
 import 'package:poseidon_1/services/moonraker/moonraker_service.dart';
 import 'package:poseidon_1/widget/navigation_rail.dart';
@@ -227,7 +228,9 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: InkWell(
                 onTap: () {
-                  // Handle print action
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const FilesPage()),
+                  );
                 },
                 child: Container(
                   height: double.infinity,
@@ -244,14 +247,14 @@ class _HomePageState extends State<HomePage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.print_rounded,
+                          Icons.folder_rounded,
                           fill: 1.0,
                           color: colorScheme.onSecondaryContainer,
                           size: 64,
                         ),
                         SizedBox(height: 16),
                         Text(
-                          'Print',
+                          'Files',
                           style: textTheme.headlineLarge?.copyWith(
                             color: colorScheme.onSecondaryContainer,
                           ),

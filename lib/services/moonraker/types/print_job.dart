@@ -164,11 +164,14 @@ class Thumbnail {
   });
 
   factory Thumbnail.fromJson(Map<String, dynamic> json) {
+    final relativePath = (json['relative_path'] ?? '').toString();
+    final rootRelativePath = (json['thumbnail_path'] ?? '').toString();
+
     return Thumbnail(
       width: _asInt(json['width']),
       height: _asInt(json['height']),
       size: _asInt(json['size']),
-      path: (json['relative_path'] ?? '').toString(),
+      path: rootRelativePath.isNotEmpty ? rootRelativePath : relativePath,
     );
   }
 

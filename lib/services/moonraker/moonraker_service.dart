@@ -21,6 +21,7 @@ class MoonrakerService extends ChangeNotifier {
   static Timer? _reconnectTimer;
   static bool _isConnecting = false;
   static bool _isConnected = false;
+  static bool _shouldReconnect = true;
 
   static String? _lastKnownIP;
   static int? _lastKnownPort;
@@ -34,6 +35,7 @@ class MoonrakerService extends ChangeNotifier {
       return;
     }
 
+    _shouldReconnect = true;
     _isConnecting = true;
     _lastKnownIP = ip;
     _lastKnownPort = port;
@@ -82,7 +84,11 @@ class MoonrakerService extends ChangeNotifier {
   }
 
   void _scheduleReconnect() {
-    if ((_reconnectTimer?.isActive ?? false) || _isConnecting) {
+    if (!_shouldReconnect) {
+      return;
+    }
+
+    if ((_reconnectTimer?.isActive ?? false) || _isConnecting || _isConnected) {
       return;
     }
 
@@ -104,6 +110,10 @@ class MoonrakerService extends ChangeNotifier {
 
   void _handleDisconnect() {
     _isConnected = false;
+    if (!_shouldReconnect) {
+      return;
+    }
+
     unawaited(
       _disposeConnection().whenComplete(() {
         _scheduleReconnect();
@@ -128,16 +138,73 @@ class MoonrakerService extends ChangeNotifier {
   }
 
   Future<void> disconnect() async {
+    _shouldReconnect = false;
     _isConnected = false;
+    _isConnecting = false;
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
     printer = null;
     await _disposeConnection();
   }
 
+  bool get _hasActiveConnection => _rpc != null && _isConnected;
+
+  Future<bool> _waitForConnectionOrShutdown() async {
+    while (!_hasActiveConnection && _shouldReconnect) {
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    return _hasActiveConnection;
+  }
+
+  PrinterState _fallbackPrinterState() =>
+      printer?.state ?? PrinterState.startup;
+
+  Heater _fallbackExtruder() {
+    return printer?.extruder ??
+        Heater(
+          name: HeaterType.extruder,
+          actualTemp: 0,
+          targetTemp: 0,
+          power: 0,
+        );
+  }
+
+  Heater _fallbackHeaterBed() {
+    return printer?.heaterBed ??
+        Heater(
+          name: HeaterType.heaterBed,
+          actualTemp: 0,
+          targetTemp: 0,
+          power: 0,
+        );
+  }
+
+  Toolhead _fallbackToolhead() {
+    return printer?.toolhead ?? Toolhead(x: 0, y: 0, z: 0, e: 0, homedAxes: '');
+  }
+
+  Fan _fallbackFan() {
+    return printer?.fan ?? Fan(speed: 0.0);
+  }
+
+  CurrentPrintJob _fallbackCurrentPrintJob() {
+    return printer?.currentPrintJob ??
+        CurrentPrintJob(
+          filePath: '',
+          totalDuration: 0,
+          printDuration: 0,
+          filamentUsed: 0,
+          state: CurrentPrintJobState.standby,
+          message: '',
+          totalLayers: null,
+          currentLayer: null,
+        );
+  }
+
   Future<PrinterState> getPrinterState() async {
-    if (_rpc == null || !_isConnected) {
-      throw Exception('Not connected to Moonraker');
+    final connected = await _waitForConnectionOrShutdown();
+    if (!connected) {
+      return _fallbackPrinterState();
     }
 
     try {
@@ -149,13 +216,14 @@ class MoonrakerService extends ChangeNotifier {
       );
     } catch (error) {
       print('Failed to get printer state: $error');
-      rethrow;
+      return _fallbackPrinterState();
     }
   }
 
   Future<Heater> getExtruderStatus() async {
-    if (_rpc == null || !_isConnected) {
-      throw Exception('Not connected to Moonraker');
+    final connected = await _waitForConnectionOrShutdown();
+    if (!connected) {
+      return _fallbackExtruder();
     }
 
     try {
@@ -173,13 +241,14 @@ class MoonrakerService extends ChangeNotifier {
       return Heater.fromJson(extruderJson);
     } catch (error) {
       print('Failed to get extruder status: $error');
-      rethrow;
+      return _fallbackExtruder();
     }
   }
 
   Future<Heater> getHeaterBedStatus() async {
-    if (_rpc == null || !_isConnected) {
-      throw Exception('Not connected to Moonraker');
+    final connected = await _waitForConnectionOrShutdown();
+    if (!connected) {
+      return _fallbackHeaterBed();
     }
 
     try {
@@ -197,13 +266,14 @@ class MoonrakerService extends ChangeNotifier {
       return Heater.fromJson(heaterBedJson);
     } catch (error) {
       print('Failed to get heater bed status: $error');
-      rethrow;
+      return _fallbackHeaterBed();
     }
   }
 
   Future<Toolhead> getToolheadStatus() async {
-    if (_rpc == null || !_isConnected) {
-      throw Exception('Not connected to Moonraker');
+    final connected = await _waitForConnectionOrShutdown();
+    if (!connected) {
+      return _fallbackToolhead();
     }
 
     try {
@@ -217,13 +287,14 @@ class MoonrakerService extends ChangeNotifier {
       return Toolhead.fromJson(response['status']['toolhead']);
     } catch (error) {
       print('Failed to get toolhead status: $error');
-      rethrow;
+      return _fallbackToolhead();
     }
   }
 
   Future<Fan> getFanStatus() async {
-    if (_rpc == null || !_isConnected) {
-      throw Exception('Not connected to Moonraker');
+    final connected = await _waitForConnectionOrShutdown();
+    if (!connected) {
+      return _fallbackFan();
     }
 
     try {
@@ -237,15 +308,11 @@ class MoonrakerService extends ChangeNotifier {
       return Fan.fromJson(response['status']['fan']);
     } catch (error) {
       print('Failed to get fan status: $error');
-      rethrow;
+      return _fallbackFan();
     }
   }
 
   Future<List<Macro>> getMacroListFromObjects(List<String> objects) async {
-    if (_rpc == null || !_isConnected) {
-      throw Exception('Not connected to Moonraker');
-    }
-
     try {
       const prefix = 'gcode_macro ';
       final macros = <Macro>[];
@@ -266,13 +333,14 @@ class MoonrakerService extends ChangeNotifier {
       return macros;
     } catch (error) {
       print('Failed to get macro list: $error');
-      rethrow;
+      return <Macro>[];
     }
   }
 
   Future<List<PrintJob>> getLatestPrintJobs() async {
-    if (_rpc == null || !_isConnected) {
-      throw Exception('Not connected to Moonraker');
+    final connected = await _waitForConnectionOrShutdown();
+    if (!connected) {
+      return printer?.printJobs ?? <PrintJob>[];
     }
 
     try {
@@ -293,13 +361,14 @@ class MoonrakerService extends ChangeNotifier {
       );
     } catch (error) {
       print('Failed to get print jobs: $error');
-      rethrow;
+      return printer?.printJobs ?? <PrintJob>[];
     }
   }
 
   Future<CurrentPrintJob> getCurrentPrintJob() async {
-    if (_rpc == null || !_isConnected) {
-      throw Exception('Not connected to Moonraker');
+    final connected = await _waitForConnectionOrShutdown();
+    if (!connected) {
+      return _fallbackCurrentPrintJob();
     }
 
     try {
@@ -324,13 +393,14 @@ class MoonrakerService extends ChangeNotifier {
       return CurrentPrintJob.fromJson(printStatsJson);
     } catch (error) {
       print('Failed to get current print job: $error');
-      rethrow;
+      return _fallbackCurrentPrintJob();
     }
   }
 
   Future<List<String>> getObjectList() async {
-    if (_rpc == null || !_isConnected) {
-      throw Exception('Not connected to Moonraker');
+    final connected = await _waitForConnectionOrShutdown();
+    if (!connected) {
+      return printer?.objects ?? <String>[];
     }
 
     try {
@@ -340,7 +410,7 @@ class MoonrakerService extends ChangeNotifier {
       return List<String>.from(response['objects']);
     } catch (error) {
       print('Failed to get object list: $error');
-      rethrow;
+      return printer?.objects ?? <String>[];
     }
   }
 
@@ -764,5 +834,42 @@ class MoonrakerService extends ChangeNotifier {
     } catch (error) {
       print('Failed to restart host: $error');
     }
+  }
+
+  void deleteFile(String path) {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    try {
+      _rpc!.sendRequest('server.files.delete_file', {'path': path}).catchError((
+        error,
+      ) {
+        print('Failed to delete file: $error');
+      });
+    } catch (error) {
+      print('Failed to delete file: $error');
+    }
+  }
+
+  ImageProvider getThumbnail(String path) {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return const AssetImage('assets/placeholder_thumbnail.png');
+    }
+
+    final normalizedPath = path.trim().replaceAll('\\', '/');
+    final noLeadingSlash = normalizedPath.startsWith('/')
+        ? normalizedPath.substring(1)
+        : normalizedPath;
+
+    final uri = Uri(
+      scheme: 'http',
+      host: _lastKnownIP!,
+      port: _lastKnownPort!,
+      pathSegments: ['server', 'files', 'gcodes', ...noLeadingSlash.split('/')],
+    );
+    return NetworkImage(uri.toString());
   }
 }

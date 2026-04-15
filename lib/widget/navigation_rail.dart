@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:poseidon_1/pages/Files_Page.dart';
 import 'package:poseidon_1/pages/Home_Page.dart';
 import 'package:poseidon_1/pages/Dev_Page.dart';
 
 final List<Widget> appNavPages = [
   const HomePage(),
-  const DevPage(),
+  const FilesPage(),
   const HomePage(),
   const DevPage(),
   const HomePage(),
 ];
 const List<IconData> appNavIcons = [
   Icons.home,
-  Icons.print_rounded,
+  Icons.folder_rounded,
   Icons.tune_rounded,
   Icons.settings,
   Icons.home,
