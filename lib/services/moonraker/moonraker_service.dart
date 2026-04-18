@@ -550,6 +550,7 @@ class MoonrakerService extends ChangeNotifier {
       printer?.toolhead = Toolhead.fromJson(toolheadJson);
       printer?.currentPrintJob = CurrentPrintJob.fromJson(printStatsJson);
       printer?.fan = Fan.fromJson(fanJson);
+
       notifyListeners();
     } catch (error) {
       print('Failed to subscribe to objects: $error');
@@ -850,6 +851,79 @@ class MoonrakerService extends ChangeNotifier {
       });
     } catch (error) {
       print('Failed to delete file: $error');
+    }
+  }
+
+  void homeAxes(String axes) {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    try {
+      _rpc!
+          .sendRequest('printer.gcode.script', {'script': 'G28 $axes'})
+          .catchError((error) {
+            print('Failed to home axes: $error');
+          });
+    } catch (error) {
+      print('Failed to home axes: $error');
+    }
+  }
+
+  void moveAxisRelative(String axis, double distance) {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    try {
+      _rpc!
+          .sendRequest('printer.gcode.script', {
+            'script':
+                '_CLIENT_LINEAR_MOVE ${axis.toUpperCase()}=${distance} F=7800',
+          })
+          .catchError((error) {
+            print('Failed to move axis: $error');
+          });
+    } catch (error) {
+      print('Failed to move axis: $error');
+    }
+  }
+
+  void setExtruderTemperature(double temperature) {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+    try {
+      _rpc!
+          .sendRequest('printer.gcode.script', {
+            'script': 'M104 S${temperature.toStringAsFixed(1)}',
+          })
+          .catchError((error) {
+            print('Failed to set extruder temperature: $error');
+          });
+    } catch (error) {
+      print('Failed to set extruder temperature: $error');
+    }
+  }
+
+  void setBedTemperature(double temperature) {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+    try {
+      _rpc!
+          .sendRequest('printer.gcode.script', {
+            'script': 'M140 S${temperature.toStringAsFixed(1)}',
+          })
+          .catchError((error) {
+            print('Failed to set bed temperature: $error');
+          });
+    } catch (error) {
+      print('Failed to set bed temperature: $error');
     }
   }
 

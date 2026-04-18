@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:poseidon_1/pages/Files_Page.dart';
 import 'package:poseidon_1/pages/Home_Page.dart';
 import 'package:poseidon_1/pages/Dev_Page.dart';
+import 'package:poseidon_1/pages/Tune_Page.dart';
+import 'package:poseidon_1/services/moonraker/instance/moonraker_instance.dart';
 
 final List<Widget> appNavPages = [
   const HomePage(),
   const FilesPage(),
-  const HomePage(),
+  const TunePage(),
   const DevPage(),
   const HomePage(),
 ];
@@ -15,7 +17,6 @@ const List<IconData> appNavIcons = [
   Icons.folder_rounded,
   Icons.tune_rounded,
   Icons.settings,
-  Icons.home,
 ];
 
 class AppNavigationScaffold extends StatelessWidget {
@@ -28,8 +29,36 @@ class AppNavigationScaffold extends StatelessWidget {
   final int selectedIndex;
   final Widget body;
 
+  Widget _buildNavIcon(
+    BuildContext context,
+    int index, {
+    required bool selected,
+  }) {
+    if (index == 4) {
+      return ImageIcon(
+        AssetImage('assets/car-brake-alert.png'),
+        color: Theme.of(context).colorScheme.error,
+        size: 46,
+      );
+    }
+
+    return Icon(
+      appNavIcons[index],
+      fill: 1.0,
+      size: selected ? 40 : 46,
+      color: selected
+          ? Theme.of(context).colorScheme.onPrimaryContainer
+          : Theme.of(context).colorScheme.onSurface,
+    );
+  }
+
   void _goToDestination(BuildContext context, int index) {
     if (index == selectedIndex) {
+      return;
+    }
+
+    if (index == 4) {
+      MoonrakerInstance.moonrakerService.emergencyStop();
       return;
     }
 
@@ -66,25 +95,13 @@ class AppNavigationScaffold extends StatelessWidget {
                           color: Theme.of(context).colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(1000),
                         ),
-                        child: Icon(
-                          appNavIcons[i],
-                          fill: 1.0,
-                          size: 40,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                        ),
+                        child: _buildNavIcon(context, i, selected: true),
                       ),
                     ] else ...[
                       InkWell(
                         onTap: () => _goToDestination(context, i),
 
-                        child: Icon(
-                          appNavIcons[i],
-                          fill: 1.0,
-                          size: 46,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                        child: _buildNavIcon(context, i, selected: false),
                       ),
                     ],
                 ],

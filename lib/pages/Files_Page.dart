@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:m3e_collection/m3e_collection.dart';
 import 'package:poseidon_1/services/moonraker/instance/moonraker_instance.dart';
 import 'package:poseidon_1/services/moonraker/moonraker_service.dart';
 import 'package:poseidon_1/services/moonraker/types/print_job.dart';
@@ -188,7 +187,7 @@ class _FilesPageState extends State<FilesPage> {
 
     return InkWell(
       onTap: () {
-        // show print dialog
+        _showPrintDialog(file);
       },
       onLongPress: () {
         //select file item
@@ -444,6 +443,196 @@ class _FilesPageState extends State<FilesPage> {
 
   bool _isSelected(PrintJob file) {
     return _selected?.jobID == file.jobID;
+  }
+
+  Future<void> _showPrintDialog(PrintJob file) async {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        final screenSize = MediaQuery.of(context).size;
+        final dialogWidth = (screenSize.width - 32)
+            .clamp(280.0, 700.0)
+            .toDouble();
+        final dialogMaxHeight = (screenSize.height * 0.88)
+            .clamp(320.0, 860.0)
+            .toDouble();
+        final imageMaxSide = (screenSize.shortestSide * 0.52)
+            .clamp(130.0, 250.0)
+            .toDouble();
+
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
+          child: SizedBox(
+            width: dialogWidth,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: dialogMaxHeight),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      file.filePath.split('/').last,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.center,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: imageMaxSide,
+                          maxHeight: imageMaxSide,
+                        ),
+                        child: AspectRatio(
+                          aspectRatio: 1,
+                          child: Card(
+                            clipBehavior: Clip.antiAlias,
+                            color: colorScheme.surfaceContainerHigh,
+                            margin: EdgeInsets.zero,
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final bestThumbnail = _pickBestThumbnail(
+                                  file,
+                                  constraints.maxWidth,
+                                  constraints.maxHeight,
+                                );
+
+                                if (bestThumbnail == null) {
+                                  return Center(
+                                    child: Icon(
+                                      Icons.image_not_supported_outlined,
+                                      color: colorScheme.onSurfaceVariant,
+                                      size: 44,
+                                    ),
+                                  );
+                                }
+
+                                return Image(
+                                  image: MoonrakerInstance.moonrakerService
+                                      .getThumbnail(
+                                        _thumbnailRequestPath(
+                                          file,
+                                          bestThumbnail,
+                                        ),
+                                      ),
+                                  fit: BoxFit.contain,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  filterQuality: FilterQuality.high,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Icon(
+                                        Icons.broken_image_outlined,
+                                        color: colorScheme.onSurfaceVariant,
+                                        size: 44,
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 8,
+                      children: [
+                        _buildDetailChip(
+                          icon: Icons.scale_rounded,
+                          label:
+                              '${file.metadata.filamentTotalWeight.toStringAsFixed(2)} g',
+                        ),
+                        _buildDetailChip(
+                          icon: Icons.layers_rounded,
+                          label:
+                              '${file.metadata.layerHeight.toStringAsFixed(2)} mm',
+                        ),
+                        _buildDetailChip(
+                          icon: Icons.timer_rounded,
+                          label: _formatDurationHm(file.metadata.estimatedTime),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                              side: BorderSide(color: colorScheme.outline),
+                            ),
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Cancel'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton.tonal(
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                              textStyle: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            onPressed: () {
+                              MoonrakerInstance.moonrakerService.startPrint(
+                                file.filePath,
+                              );
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Print'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailChip({required IconData icon, required String label}) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 17, color: colorScheme.onSecondaryContainer),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSecondaryContainer,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _confirmDeleteSelected(

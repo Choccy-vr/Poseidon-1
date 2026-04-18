@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:m3e_collection/m3e_collection.dart';
 import 'package:poseidon_1/pages/Files_Page.dart';
+import 'package:poseidon_1/pages/Tune_Page.dart';
 import 'package:poseidon_1/services/moonraker/types/current_print_job.dart';
 import 'package:poseidon_1/services/moonraker/moonraker_service.dart';
 import 'package:poseidon_1/widget/navigation_rail.dart';
@@ -79,8 +80,7 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   children: [
                     Icon(
-                      //TODO: Replace with extruder icon
-                      Icons.device_thermostat_rounded,
+                      Icons.whatshot_rounded,
                       fill: 1.0,
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -117,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   children: [
                     Icon(
-                      Icons.bed_rounded,
+                      Icons.grid_on_rounded,
                       fill: 1.0,
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -268,6 +268,11 @@ class _HomePageState extends State<HomePage> {
             SizedBox(width: 16),
             Expanded(
               child: InkWell(
+                onTap: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const TunePage()),
+                  );
+                },
                 child: Container(
                   height: double.infinity,
                   padding: const EdgeInsets.symmetric(
