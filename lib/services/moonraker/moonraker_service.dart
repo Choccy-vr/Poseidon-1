@@ -689,6 +689,31 @@ class MoonrakerService extends ChangeNotifier {
         status['print_stats'] as Map,
       );
       final currentPrintJob = printer!.currentPrintJob;
+      final currentInfo = <String, dynamic>{
+        if (currentPrintJob.totalLayers != null)
+          'total_layer': currentPrintJob.totalLayers,
+        if (currentPrintJob.currentLayer != null)
+          'current_layer': currentPrintJob.currentLayer,
+      };
+
+      final mergedInfo = <String, dynamic>{...currentInfo};
+      if (printStatsPatch['info'] is Map) {
+        mergedInfo.addAll(
+          Map<String, dynamic>.from(printStatsPatch['info'] as Map),
+        );
+      }
+      if (printStatsPatch['total_layer'] != null) {
+        mergedInfo['total_layer'] = printStatsPatch['total_layer'];
+      }
+      if (printStatsPatch['current_layer'] != null) {
+        mergedInfo['current_layer'] = printStatsPatch['current_layer'];
+      }
+      if (printStatsPatch['total_layers'] != null) {
+        mergedInfo['total_layers'] = printStatsPatch['total_layers'];
+      }
+      if (printStatsPatch['current_layers'] != null) {
+        mergedInfo['current_layers'] = printStatsPatch['current_layers'];
+      }
 
       final printStatsJson = {
         'filename':
@@ -708,7 +733,7 @@ class MoonrakerService extends ChangeNotifier {
             currentPrintJob.filamentUsed,
         'message':
             (printStatsPatch['message'] as String?) ?? currentPrintJob.message,
-        'info': printStatsPatch['info'] ?? {},
+        'info': mergedInfo,
       };
       printer?.currentPrintJob = CurrentPrintJob.fromJson(printStatsJson);
       didChange = true;

@@ -80,6 +80,7 @@ class PrintJobMetadata {
   String slicer;
   String slicerVersion;
   double estimatedTime; //seconds
+  int? layerCount;
   double nozzleDiameter; //mm
   double layerHeight; //mm
   double firstLayerHeight; //mm
@@ -92,6 +93,7 @@ class PrintJobMetadata {
     required this.slicer,
     required this.slicerVersion,
     required this.estimatedTime,
+    this.layerCount,
     required this.nozzleDiameter,
     required this.layerHeight,
     required this.firstLayerHeight,
@@ -117,6 +119,10 @@ class PrintJobMetadata {
       slicer: (json['slicer'] ?? '').toString(),
       slicerVersion: (json['slicer_version'] ?? '').toString(),
       estimatedTime: _asDouble(json['estimated_time']),
+      layerCount:
+          _asNullableInt(json['layer_count']) ??
+          _asNullableInt(json['total_layer']) ??
+          _asNullableInt(json['total_layers']),
       nozzleDiameter: _asDouble(json['nozzle_diameter']),
       layerHeight: _asDouble(json['layer_height']),
       firstLayerHeight: _asDouble(json['first_layer_height']),
@@ -137,6 +143,22 @@ class PrintJobMetadata {
       return int.tryParse(value) ?? double.tryParse(value)?.round() ?? fallback;
     }
     return fallback;
+  }
+
+  static int? _asNullableInt(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.round();
+    }
+    if (value is String) {
+      return int.tryParse(value) ?? double.tryParse(value)?.round();
+    }
+    return null;
   }
 
   static double _asDouble(dynamic value, [double fallback = 0.0]) {

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:m3e_collection/m3e_collection.dart';
 import 'package:poseidon_1/pages/Files_Page.dart';
 import 'package:poseidon_1/pages/Tune_Page.dart';
 import 'package:poseidon_1/services/moonraker/types/current_print_job.dart';
@@ -27,7 +26,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             _buildQuickStats(colorScheme, textTheme),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Expanded(child: _buildQuickActions(colorScheme, textTheme)),
           ],
         ),
