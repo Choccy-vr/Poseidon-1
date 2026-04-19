@@ -1,12 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:m3e_collection/m3e_collection.dart';
+import 'package:poseidon_1/pages/Home_Page.dart';
 import 'package:poseidon_1/services/moonraker/moonraker_service.dart';
 import 'package:poseidon_1/services/moonraker/types/current_print_job.dart';
 import 'package:poseidon_1/services/moonraker/types/print_job.dart';
 import 'package:provider/provider.dart';
 
-class PrintingPage extends StatelessWidget {
+class PrintingPage extends StatefulWidget {
   const PrintingPage({super.key});
+
+  @override
+  State<PrintingPage> createState() => _PrintingPageState();
+}
+
+class _PrintingPageState extends State<PrintingPage> {
+  bool _completionDialogShown = false;
+
+  Future<void> _showCompletionDialog(
+    BuildContext context,
+    MoonrakerService service,
+    String filePath,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Print Complete'),
+          content: const Text('What would you like to do next?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (filePath.isNotEmpty) {
+                  service.startPrint(filePath);
+                }
+              },
+              child: const Text('Print again'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                service.clearCurrentPrintSelection();
+                if (!mounted) {
+                  return;
+                }
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const HomePage()),
+                );
+              },
+              child: const Text('Return'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +69,28 @@ class PrintingPage extends StatelessWidget {
         final job = printer.currentPrintJob;
         final file = printer.printJobs.firstWhere(
           (j) => j.status == PrintJobStatus.in_progress,
+          orElse: () => PrintJob(
+            jobID: '',
+            filePath: job.filePath,
+            exists: true,
+            status: PrintJobStatus.in_progress,
+            startedAt: DateTime.now(),
+            printDuration: job.printDuration,
+            totalDuration: job.totalDuration,
+            filamentUsed: job.filamentUsed,
+            metadata: PrintJobMetadata(
+              size: 0,
+              slicer: '',
+              slicerVersion: '',
+              estimatedTime: job.totalDuration,
+              nozzleDiameter: 0,
+              layerHeight: 0,
+              firstLayerHeight: 0,
+              filamentTotal: 0,
+              filamentTotalWeight: 0,
+              thumbnails: const [],
+            ),
+          ),
         );
         final extruder = printer.extruder;
         final heaterBed = printer.heaterBed;
@@ -44,6 +115,20 @@ class PrintingPage extends StatelessWidget {
         );
         final totalLayers = job.totalLayers ?? file.metadata.layerCount;
         final currentLayer = job.currentLayer;
+
+        if (job.state == CurrentPrintJobState.complete &&
+            !_completionDialogShown) {
+          _completionDialogShown = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) {
+              return;
+            }
+            _showCompletionDialog(context, service, file.filePath);
+          });
+        } else if (job.state != CurrentPrintJobState.complete &&
+            _completionDialogShown) {
+          _completionDialogShown = false;
+        }
 
         return Scaffold(
           backgroundColor: colorScheme.surface,

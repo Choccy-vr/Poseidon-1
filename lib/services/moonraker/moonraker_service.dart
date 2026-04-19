@@ -832,6 +832,25 @@ class MoonrakerService extends ChangeNotifier {
     }
   }
 
+  void clearCurrentPrintSelection() {
+    if (printer == null) {
+      return;
+    }
+
+    printer!.currentPrintJob = CurrentPrintJob(
+      filePath: '',
+      totalDuration: 0,
+      printDuration: 0,
+      filamentUsed: 0,
+      state: CurrentPrintJobState.standby,
+      message: '',
+      totalLayers: null,
+      currentLayer: null,
+    );
+
+    notifyListeners();
+  }
+
   void firmwareRestart() {
     if (_rpc == null || !_isConnected) {
       print('Not connected to Moonraker');
