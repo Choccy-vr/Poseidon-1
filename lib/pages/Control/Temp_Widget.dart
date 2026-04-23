@@ -100,7 +100,7 @@ class TempWidget extends StatelessWidget {
     return Material(
       color: containerColor,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: onContainerColor.withValues(alpha: 0.3)),
       ),
       child: Padding(

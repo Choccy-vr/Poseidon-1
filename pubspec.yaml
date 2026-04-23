@@ -12,7 +12,9 @@ dependencies:
   google_fonts: ^8.0.2
   json_rpc_2: ^4.1.0
   m3e_collection: ^0.3.7
+  multicast_dns: ^0.3.3
   provider: ^6.1.5
+  shared_preferences: ^2.5.5
   web_socket_channel: ^3.0.3
 
 dev_dependencies:
