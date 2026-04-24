@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:poseidon_1/services/moonraker/discovery_service.dart';
 import 'package:poseidon_1/services/moonraker/types/current_print_job.dart';
 import 'package:poseidon_1/services/moonraker/types/fan.dart';
 import 'package:poseidon_1/services/moonraker/types/heater.dart';
@@ -29,23 +30,22 @@ class MoonrakerService extends ChangeNotifier {
   static WebSocketChannel? _channel;
   static Peer? _rpc;
 
-  //TODO: Autodiscover printer on local network
-  Future<void> connectPrinter({required String ip, required int port}) async {
+  Future<void> connectPrinter(MoonrakerDNSInstance instance) async {
     if (_isConnecting) {
       return;
     }
 
     _shouldReconnect = true;
     _isConnecting = true;
-    _lastKnownIP = ip;
-    _lastKnownPort = port;
+    _lastKnownIP = instance.ip;
+    _lastKnownPort = instance.port;
 
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
 
     await _disposeConnection();
 
-    final Uri wsURI = Uri.parse('ws://$ip:$port/websocket');
+    final Uri wsURI = Uri.parse('ws://$instance.ip:$instance.port/websocket');
     try {
       final channel = WebSocketChannel.connect(wsURI);
       final rpc = Peer(channel.cast<String>());
@@ -70,7 +70,8 @@ class MoonrakerService extends ChangeNotifier {
 
       _retryCount = 0;
       _isConnected = true;
-      print('Connected to Moonraker at $ip:$port');
+      print('Connected to Moonraker at ${instance.ip}:${instance.port}');
+      DiscoveryService.saveInstance(instance);
       await newPrinter();
       subscribeToObjects();
     } catch (error) {
@@ -104,7 +105,11 @@ class MoonrakerService extends ChangeNotifier {
 
     _reconnectTimer = Timer(delay, () {
       _reconnectTimer = null;
-      unawaited(connectPrinter(ip: _lastKnownIP!, port: _lastKnownPort!));
+      unawaited(
+        connectPrinter(
+          MoonrakerDNSInstance(ip: _lastKnownIP!, port: _lastKnownPort!),
+        ),
+      );
     });
   }
 
