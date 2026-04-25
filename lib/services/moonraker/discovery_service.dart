@@ -152,14 +152,4 @@ class DiscoveryService {
     await prefs.remove('moonraker_port');
     await prefs.remove('moonraker_hostname');
   }
-
-  static Future<List<MoonrakerDNSInstance>> emptyInstance() async {
-    return [
-      MoonrakerDNSInstance(
-        ip: '192.168.68.53',
-        port: 7125,
-        hostname: 'poseidon.local',
-      ),
-    ];
-  }
 }

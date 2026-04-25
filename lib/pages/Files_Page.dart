@@ -30,6 +30,12 @@ class _FilesPageState extends State<FilesPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    MoonrakerInstance.moonrakerService.refreshLatestPrintJobs();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:m3e_collection/m3e_collection.dart';
 import 'package:poseidon_1/pages/Home_Page.dart';
+import 'package:poseidon_1/services/moonraker/instance/moonraker_instance.dart';
 import 'package:poseidon_1/services/moonraker/moonraker_service.dart';
 import 'package:poseidon_1/services/moonraker/types/current_print_job.dart';
 import 'package:poseidon_1/services/moonraker/types/print_job.dart';
@@ -55,6 +56,12 @@ class _PrintingPageState extends State<PrintingPage> {
         );
       },
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    MoonrakerInstance.moonrakerService.refreshLatestPrintJobs();
   }
 
   @override
@@ -687,7 +694,30 @@ class _PrintingPageState extends State<PrintingPage> {
             ),
             child: ButtonM3E(
               onPressed: () {
-                context.read<MoonrakerService>().cancelPrint();
+                showDialog<void>(
+                  context: context,
+                  builder: (dialogContext) {
+                    return AlertDialog(
+                      title: const Text('Cancel Print'),
+                      content: const Text(
+                        'Are you sure you want to cancel the print?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          child: const Text('No'),
+                        ),
+                        FilledButton(
+                          onPressed: () {
+                            context.read<MoonrakerService>().cancelPrint();
+                            Navigator.of(dialogContext).pop();
+                          },
+                          child: const Text('Yes'),
+                        ),
+                      ],
+                    );
+                  },
+                );
               },
               label: Padding(
                 padding: const EdgeInsets.symmetric(

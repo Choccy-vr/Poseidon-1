@@ -372,6 +372,14 @@ class MoonrakerService extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshLatestPrintJobs() async {
+    final printJobs = await getLatestPrintJobs();
+    if (printer != null) {
+      printer!.printJobs = printJobs;
+      notifyListeners();
+    }
+  }
+
   Future<CurrentPrintJob> getCurrentPrintJob() async {
     final connected = await _waitForConnectionOrShutdown();
     if (!connected) {

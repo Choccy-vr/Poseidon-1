@@ -52,8 +52,7 @@ class _DiscoveryPageState extends State<DiscoveryPage> {
       body: Stack(
         children: [
           FutureBuilder<List<MoonrakerDNSInstance>>(
-            future: DiscoveryService.emptyInstance(),
-            //future: DiscoveryService.discoverAll(),
+            future: DiscoveryService.discoverAll(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
