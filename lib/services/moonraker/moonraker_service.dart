@@ -1005,4 +1005,17 @@ class MoonrakerService extends ChangeNotifier {
     );
     return NetworkImage(uri.toString());
   }
+
+  void runMacro(Macro macro) {
+    if (_rpc == null || !_isConnected) {
+      print('Not connected to Moonraker');
+      return;
+    }
+
+    _rpc!
+        .sendRequest('printer.gcode.script', {'script': macro.name})
+        .catchError((error) {
+          print('Failed to execute macro ${macro.name}: $error');
+        });
+  }
 }

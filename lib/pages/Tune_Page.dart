@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:poseidon_1/pages/Control/Light_Widget.dart';
+import 'package:poseidon_1/pages/Control/Macros_Widget.dart';
 import 'package:poseidon_1/pages/Control/Move_Widget.dart';
 import 'package:poseidon_1/pages/Control/Temp_Widget.dart';
 import 'package:poseidon_1/widget/navigation_rail.dart';
@@ -11,7 +13,7 @@ class TunePage extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return DefaultTabController(
-      length: 2,
+      length: 4,
       child: AppNavigationScaffold(
         selectedIndex: 2,
         body: Material(
@@ -32,11 +34,23 @@ class TunePage extends StatelessWidget {
                   tabs: [
                     Tab(icon: Icon(Icons.thermostat), text: 'Temp'),
                     Tab(icon: Icon(Icons.open_with_rounded), text: 'Move'),
+                    Tab(
+                      icon: Icon(Icons.playlist_play_rounded),
+                      text: 'Macros',
+                    ),
+                    Tab(icon: Icon(Icons.lightbulb_outline), text: 'Light'),
                   ],
                 ),
               ),
               Expanded(
-                child: TabBarView(children: const [TempWidget(), MoveWidget()]),
+                child: TabBarView(
+                  children: const [
+                    TempWidget(),
+                    MoveWidget(),
+                    MacrosWidget(),
+                    LightWidget(),
+                  ],
+                ),
               ),
             ],
           ),

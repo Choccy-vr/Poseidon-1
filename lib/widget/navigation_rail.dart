@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:poseidon_1/pages/Files_Page.dart';
 import 'package:poseidon_1/pages/Home_Page.dart';
-import 'package:poseidon_1/pages/Dev_Page.dart';
 import 'package:poseidon_1/pages/Printing_Page.dart';
+import 'package:poseidon_1/pages/Settings_Page.dart';
 import 'package:poseidon_1/pages/Tune_Page.dart';
 import 'package:poseidon_1/services/moonraker/instance/moonraker_instance.dart';
 import 'package:poseidon_1/services/moonraker/moonraker_service.dart';
@@ -13,7 +13,7 @@ final List<Widget> appNavPages = [
   const HomePage(),
   const FilesPage(),
   const TunePage(),
-  const DevPage(),
+  const SettingsPage(),
   const HomePage(),
 ];
 const List<IconData> appNavIcons = [
