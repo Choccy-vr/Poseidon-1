@@ -15,13 +15,46 @@ Used for easy print management, temperature control, move controls, printing sta
 
 ## Why this exists
 
-A little while ago, I started a project to fix the basic UI issues in the Neptune 4 series of printers. You can find it [here](https://github.com/OpenNeptune3D/display_firmware). I stopped working on this slightly because I lost interest, but also the TJC screens are terrible to work with, at least in English (There is no US or English version of the Software you **need** to edit the UI). I was able to make a proof of concept and even able to upload the new firmware through the existing UART connection previously not possible. 
+A little while ago, I started a project to fix the basic UI issues in the Neptune 4 series of printers. You can find it [here](https://github.com/OpenNeptune3D/display_firmware). I stopped working on this slightly because I lost interest, but also the TJC screens are terrible to work with, at least in English (There is no US or English version of the Software you **need** to edit the UI). I was able to make a proof of concept and even able to upload the new firmware through the existing UART connection, which was previously not possible. 
 
 I have 100% learned from that, and I might go back to it one day, but I wanted to create this ideal display of mine with a great, beautiful animated UI that feels like you were actually supposed to use it. Looking at what I had on hand, I created Poseidon 1. A kinda in a way succesor to my previous project.
 
 ## Features
 
-- Fill me in
+- Home screen
+- Auto printer pairing
+- Material 3 Expressive Design
+- Flutter App
+- On-device file printing
+- On-device file deleting
+- Off-the-shelf hardware
+- Compact
+- Live temperature
+- Print File Stats
+- Temperature Management (extruder & bed)
+- move controls
+- homing axis control
+- Emergency Stop
+- Automatic refreshing
+- ergonomic 45-degree stand
+- Automatic current print page
+- cancel and pause/resume print
+- fan speed
+- Raspberry Pi OS
+- Beautiful UI
+- Moonraker integration
+- Compatible with Klipper printers (built for Neptune 4 series)
+- 3D printed case
+- Step files
+- HDMI & USB
+- WiFi
+- Bluetooth
+- Pi Zero 2W
+- Adjustable brightness
+- cheap parts
+- Works with OpenNept4une
+- Auto Discovery
+- And Much More
 
 ## Showcase
 
