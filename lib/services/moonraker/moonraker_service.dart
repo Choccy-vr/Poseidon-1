@@ -45,7 +45,9 @@ class MoonrakerService extends ChangeNotifier {
 
     await _disposeConnection();
 
-    final Uri wsURI = Uri.parse('ws://$instance.ip:$instance.port/websocket');
+    final Uri wsURI = Uri.parse(
+      'ws://${instance.ip}:${instance.port}/websocket',
+    );
     try {
       final channel = WebSocketChannel.connect(wsURI);
       final rpc = Peer(channel.cast<String>());

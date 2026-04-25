@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  Widget initialHome = const DiscoveryPage();
+  /*Widget initialHome = const DiscoveryPage();
 
   final MoonrakerDNSInstance? savedInstance =
       await DiscoveryService.loadSavedInstance();
@@ -30,7 +30,12 @@ Future<void> main() async {
     }
   } else {
     print('No saved Moonraker instance found. Opening discovery page.');
-  }
+  }*/
+
+  await MoonrakerInstance.moonrakerService.connectPrinter(
+    MoonrakerDNSInstance(ip: '192.168.68.53', port: 7125),
+  );
+  Widget initialHome = const HomePage();
 
   runApp(MainApp(initialHome: initialHome));
 }
@@ -50,6 +55,7 @@ class MainApp extends StatelessWidget {
     return ChangeNotifierProvider<MoonrakerService>.value(
       value: MoonrakerInstance.moonrakerService,
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         theme: baseTheme.copyWith(
           textTheme: GoogleFonts.plusJakartaSansTextTheme(baseTheme.textTheme),
           primaryTextTheme: GoogleFonts.plusJakartaSansTextTheme(
