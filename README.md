@@ -53,6 +53,7 @@ I have 100% learned from that, and I might go back to it one day, but I wanted t
 - Adjustable brightness
 - cheap parts
 - Works with OpenNept4une
+- Auto Discovery
 - And Much More
 
 ## Showcase
