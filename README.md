@@ -81,6 +81,10 @@ I have 100% learned from that, and I might go back to it one day, but I wanted t
 ![Move Page](https://github.com/Choccy-vr/Poseidon-1/blob/main/Media/Move.png)
 #### Selection Page
 ![Selection Page](https://github.com/Choccy-vr/Poseidon-1/blob/main/Media/Selection.png)
+#### Light Page
+![Light Page](https://github.com/Choccy-vr/Poseidon-1/blob/main/Media/Light.png)
+#### Macros Page
+![Macros Page](https://github.com/Choccy-vr/Poseidon-1/blob/main/Media/Macros.png)
 
 ## Description
 
