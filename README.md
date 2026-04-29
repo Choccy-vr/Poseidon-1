@@ -1,6 +1,6 @@
 # Poseidon 1 
 
-insert pictures of built project here
+![Build Image](https://github.com/Choccy-vr/Poseidon-1/blob/main/Media/Build.jpg)
 
 Poseidon 1 is an upgraded display for the outdated and useless stock display on the Neptune 4 series of printers.
 
@@ -59,6 +59,12 @@ I have 100% learned from that, and I might go back to it one day, but I wanted t
 ## Showcase
 
 ### Hardware:
+#### Full - Build
+![Build Image](https://github.com/Choccy-vr/Poseidon-1/blob/main/Media/Build.jpg)
+#### Top - Build
+![Build Top Image](https://github.com/Choccy-vr/Poseidon-1/blob/main/Media/Build-Top.jpg)
+#### Side - Build
+![Build Side Image](https://github.com/Choccy-vr/Poseidon-1/blob/main/Media/Build-Side.jpg)
 
 ### CAD:
 #### Back CAD
@@ -128,5 +134,3 @@ The app also uses Moonraker and Moonraker APIs to communicate with the printer. 
 - Bluetooth 4.2, Bluetooth Low Energy (BLE)
 - Mini HDMI port and micro USB On-The-Go (OTG) port
 - Micro USB power
-
-## Instalation
