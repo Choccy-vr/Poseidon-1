@@ -2,6 +2,9 @@
 
 ![Build Image](https://github.com/Choccy-vr/Poseidon-1/blob/main/Media/Build.jpg)
 
+
+[Demo Video](https://youtu.be/u-WI5zh-9PY)
+
 Poseidon 1 is an upgraded display for the outdated and useless stock display on the Neptune 4 series of printers.
 
 Used for easy print management, temperature control, move controls, printing status, files, and much more. inspired by more modern printer user interfaces, such as Bambu Lab's Display and Klipper Screen. The UI is built on top of the Material 3 Expressive design language with a light blue seed color to match the [project](https://github.com/OpenNeptune3D/OpenNept4une), which kinda pairs with. 
